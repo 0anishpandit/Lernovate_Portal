@@ -1,4 +1,3 @@
-// Unauthorized access page for users without proper permissions
 "use client"
 
 import { useEffect, useState } from "react"
@@ -6,9 +5,11 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertTriangle, Home, LogOut } from "lucide-react"
+import { apiClient } from "@/lib/api"
 
 interface UserInfo {
-  name: string
+  firstName: string
+  lastName: string
   role: string
   email: string
 }
@@ -19,33 +20,56 @@ export default function UnauthorizedPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get current user info to show personalized message
-    fetch("/api/auth/verify")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
+    const getUserInfo = async () => {
+      try {
+        const response = await apiClient.verifyToken()
+        if (response.success && response.user) {
           setUserInfo({
-            name: data.user.name,
-            role: data.user.role,
-            email: data.user.email,
+            firstName: response.user.firstName,
+            lastName: response.user.lastName,
+            role: response.user.role,
+            email: response.user.email,
           })
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("[v0] Failed to get user info:", error)
-      })
-      .finally(() => {
+      } finally {
         setLoading(false)
-      })
+      }
+    }
+
+    getUserInfo()
   }, [])
 
   const handleGoToDashboard = () => {
-    router.push("/dashboard")
+    if (userInfo) {
+      // Redirect to appropriate dashboard based on role
+      const dashboardMap: Record<string, string> = {
+        Super_Admin: "/dashboard/superadmin",
+        Institutional_Admin: "/dashboard/institution",
+        Principal: "/dashboard/principal",
+        "Vice-Principal": "/dashboard/viceprincipal",
+        Hostel_Warden: "/dashboard/hostelwarden",
+        Hostel_Matron: "/dashboard/hostelmatron",
+        Librarian: "/dashboard/librarian",
+        School_CoOrdinator: "/dashboard/schoolcoordinator",
+        Mentor: "/dashboard/mentor",
+        Teaching_Staff: "/dashboard/teachingstaff",
+        "Non-Teaching_Staff": "/dashboard/nonteachingstaff",
+        "Parents/Guardian": "/dashboard/parents",
+        Students: "/dashboard/student",
+      }
+
+      const dashboardUrl = dashboardMap[userInfo.role] || "/dashboard"
+      router.push(dashboardUrl)
+    } else {
+      router.push("/")
+    }
   }
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" })
+      await apiClient.logout()
       router.push("/")
     } catch (error) {
       console.error("[v0] Logout error:", error)
@@ -55,15 +79,15 @@ export default function UnauthorizedPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white p-4">
+      <Card className="w-full max-w-md bg-white/80 backdrop-blur-sm border-blue-100">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
             <AlertTriangle className="h-8 w-8 text-red-600" />
@@ -73,11 +97,11 @@ export default function UnauthorizedPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {userInfo && (
-            <div className="rounded-lg bg-orange-50 p-4 border border-orange-200">
-              <h3 className="font-semibold text-orange-900 mb-2">Current User</h3>
-              <div className="space-y-1 text-sm text-orange-800">
+            <div className="rounded-lg bg-blue-50 p-4 border border-blue-200">
+              <h3 className="font-semibold text-blue-900 mb-2">Current User</h3>
+              <div className="space-y-1 text-sm text-blue-800">
                 <p>
-                  <span className="font-medium">Name:</span> {userInfo.name}
+                  <span className="font-medium">Name:</span> {userInfo.firstName} {userInfo.lastName}
                 </p>
                 <p>
                   <span className="font-medium">Role:</span>{" "}

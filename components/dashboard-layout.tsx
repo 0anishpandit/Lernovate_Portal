@@ -1,8 +1,6 @@
-// Shared dashboard layout component for consistent design across all roles
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -10,51 +8,57 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { LogOut, User, Settings, Bell } from "lucide-react"
-import type { UserRole } from "@/lib/auth-utils"
+import { apiClient } from "@/lib/api"
 
 interface DashboardUser {
   id: string
-  name: string
+  firstName: string
+  lastName: string
   email: string
-  role: UserRole
-  permissions: string[]
-  updatedAt?: string
+  role: string
+  dashboardUrl?: string
 }
 
 interface DashboardLayoutProps {
   children: React.ReactNode
   title: string
   description: string
+  requiredRole: string
 }
 
-export default function DashboardLayout({ children, title, description }: DashboardLayoutProps) {
+function DashboardLayout({ children, title, description, requiredRole }: DashboardLayoutProps) {
   const router = useRouter()
   const [user, setUser] = useState<DashboardUser | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Verify authentication and get user info
-    fetch("/api/auth/verify")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setUser(data.user)
+    const verifyAuth = async () => {
+      try {
+        const response = await apiClient.verifyToken()
+        if (response.success && response.user) {
+          // Check if user has required role
+          if (response.user.role !== requiredRole) {
+            router.push("/unauthorized")
+            return
+          }
+          setUser(response.user)
         } else {
           router.push("/")
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("[v0] Auth verification failed:", error)
         router.push("/")
-      })
-      .finally(() => {
+      } finally {
         setLoading(false)
-      })
-  }, [router])
+      }
+    }
+
+    verifyAuth()
+  }, [router, requiredRole])
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" })
+      await apiClient.logout()
       router.push("/")
     } catch (error) {
       console.error("[v0] Logout error:", error)
@@ -62,33 +66,33 @@ export default function DashboardLayout({ children, title, description }: Dashbo
     }
   }
 
-  const getRoleDisplayName = (role: UserRole): string => {
-    return role.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+  const getRoleDisplayName = (role: string): string => {
+    return role.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
   }
 
-  const getRoleBadgeColor = (role: UserRole): string => {
-    const colors: Record<UserRole, string> = {
-      "super-admin": "bg-purple-100 text-purple-800 border-purple-200",
-      admin: "bg-blue-100 text-blue-800 border-blue-200",
-      principal: "bg-indigo-100 text-indigo-800 border-indigo-200",
-      "vice-principal": "bg-indigo-100 text-indigo-800 border-indigo-200",
-      teacher: "bg-orange-100 text-orange-800 border-orange-200",
-      student: "bg-cyan-100 text-cyan-800 border-cyan-200",
-      parent: "bg-green-100 text-green-800 border-green-200",
-      librarian: "bg-pink-100 text-pink-800 border-pink-200",
-      accountant: "bg-emerald-100 text-emerald-800 border-emerald-200",
-      receptionist: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      driver: "bg-gray-100 text-gray-800 border-gray-200",
-      guard: "bg-slate-100 text-slate-800 border-slate-200",
-      cleaner: "bg-neutral-100 text-neutral-800 border-neutral-200",
+  const getRoleBadgeColor = (role: string): string => {
+    const colors: Record<string, string> = {
+      Super_Admin: "bg-purple-100 text-purple-800 border-purple-200",
+      Institutional_Admin: "bg-blue-100 text-blue-800 border-blue-200",
+      Principal: "bg-indigo-100 text-indigo-800 border-indigo-200",
+      "Vice-Principal": "bg-indigo-100 text-indigo-800 border-indigo-200",
+      Teaching_Staff: "bg-orange-100 text-orange-800 border-orange-200",
+      Students: "bg-cyan-100 text-cyan-800 border-cyan-200",
+      "Parents/Guardian": "bg-green-100 text-green-800 border-green-200",
+      Librarian: "bg-pink-100 text-pink-800 border-pink-200",
+      School_CoOrdinator: "bg-emerald-100 text-emerald-800 border-emerald-200",
+      Hostel_Warden: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      Hostel_Matron: "bg-rose-100 text-rose-800 border-rose-200",
+      Mentor: "bg-violet-100 text-violet-800 border-violet-200",
+      "Non-Teaching_Staff": "bg-gray-100 text-gray-800 border-gray-200",
     }
     return colors[role] || "bg-gray-100 text-gray-800 border-gray-200"
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     )
   }
@@ -97,14 +101,16 @@ export default function DashboardLayout({ children, title, description }: Dashbo
     return null
   }
 
+  const fullName = `${user.firstName} ${user.lastName}`
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-orange-200">
+      <header className="bg-white shadow-sm border-b border-blue-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-orange-600">Lernovate</h1>
+              <h1 className="text-2xl font-bold text-blue-600">Lernovate</h1>
               <div className="hidden sm:block">
                 <Badge className={getRoleBadgeColor(user.role)}>{getRoleDisplayName(user.role)}</Badge>
               </div>
@@ -119,16 +125,13 @@ export default function DashboardLayout({ children, title, description }: Dashbo
               </Button>
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-orange-100 text-orange-600">
-                    {user.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase()}
+                  <AvatarFallback className="bg-blue-100 text-blue-600">
+                    {user.firstName[0]}
+                    {user.lastName[0]}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:block">
-                  <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                  <p className="text-sm font-medium text-gray-900">{fullName}</p>
                   <p className="text-xs text-gray-500">{user.email}</p>
                 </div>
               </div>
@@ -149,28 +152,26 @@ export default function DashboardLayout({ children, title, description }: Dashbo
         </div>
 
         {/* User Info Card */}
-        <Card className="mb-8">
+        <Card className="mb-8 bg-white/80 backdrop-blur-sm border-blue-100">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
+              <User className="h-5 w-5 text-blue-600" />
               User Information
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-500">Name</p>
-                <p className="text-lg font-semibold text-gray-900">{user.name}</p>
+                <p className="text-lg font-semibold text-gray-900">{fullName}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Role</p>
                 <Badge className={getRoleBadgeColor(user.role)}>{getRoleDisplayName(user.role)}</Badge>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Last Updated</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "N/A"}
-                </p>
+                <p className="text-sm font-medium text-gray-500">Email</p>
+                <p className="text-lg font-semibold text-gray-900">{user.email}</p>
               </div>
             </div>
           </CardContent>
@@ -182,3 +183,6 @@ export default function DashboardLayout({ children, title, description }: Dashbo
     </div>
   )
 }
+
+export { DashboardLayout }
+export default DashboardLayout

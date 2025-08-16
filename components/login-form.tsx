@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Loader2, BookOpen, AlertCircle, WifiOff } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
+import { apiClient } from "@/lib/api"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -78,66 +79,52 @@ export function LoginForm() {
     setIsOnline(true)
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          rememberMe,
-        }),
-      })
+      const response = await apiClient.login(email, password, rememberMe)
 
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        const roleDisplayName = data.user.role.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase())
+      if (response.success) {
+        const roleDisplayName = response.user.role.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase())
 
         toast({
           title: "Login Successful",
-          description: `Welcome back, ${data.user.name}! Redirecting to ${roleDisplayName} dashboard...`,
+          description: `Welcome back, ${response.user.firstName} ${response.user.lastName}! Redirecting to ${roleDisplayName} dashboard...`,
         })
 
         setTimeout(() => {
-          window.location.href = data.redirectUrl || "/dashboard"
+          window.location.href = response.dashboardUrl || "/dashboard"
         }, 1500)
       } else {
-        if (response.status === 401) {
-          setError("Invalid email or password. Please check your credentials.")
-          toast({
-            variant: "destructive",
-            title: "Authentication Failed",
-            description: "Invalid email or password.",
-          })
-        } else if (response.status >= 500) {
-          setError("Server error. Please try again in a moment.")
-          toast({
-            variant: "destructive",
-            title: "Server Error",
-            description: "Something went wrong on our end. Please try again.",
-          })
-        } else {
-          setError(data.error || "Login failed. Please try again.")
-          toast({
-            variant: "destructive",
-            title: "Login Failed",
-            description: data.error || "An unexpected error occurred.",
-          })
-        }
+        setError(response.message || "Login failed. Please try again.")
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: response.message || "An unexpected error occurred.",
+        })
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("[v0] Login error:", err)
       setRetryCount((prev) => prev + 1)
 
-      if (err instanceof TypeError && err.message.includes("fetch")) {
+      if (err.message.includes("Invalid email or password")) {
+        setError("Invalid email or password. Please check your credentials.")
+        toast({
+          variant: "destructive",
+          title: "Authentication Failed",
+          description: "Invalid email or password.",
+        })
+      } else if (err.message.includes("fetch") || err.message.includes("network")) {
         setIsOnline(false)
         setError("Network error. Please check your connection and try again.")
         toast({
           variant: "destructive",
           title: "Network Error",
           description: "Unable to connect to the server. Please check your internet connection.",
+        })
+      } else if (err.message.includes("server") || err.message.includes("500")) {
+        setError("Server error. Please try again in a moment.")
+        toast({
+          variant: "destructive",
+          title: "Server Error",
+          description: "Something went wrong on our end. Please try again.",
         })
       } else {
         setError("An unexpected error occurred. Please try again.")
@@ -296,13 +283,13 @@ export function LoginForm() {
               <strong>Super Admin:</strong> superadmin@lernovate.com / admin123
             </p>
             <p className="text-xs text-muted-foreground">
+              <strong>Principal:</strong> principal@lernovate.com / principal123
+            </p>
+            <p className="text-xs text-muted-foreground">
               <strong>Teacher:</strong> teacher@lernovate.com / teacher123
             </p>
             <p className="text-xs text-muted-foreground">
               <strong>Student:</strong> student@lernovate.com / student123
-            </p>
-            <p className="text-xs text-muted-foreground">
-              <strong>Admin:</strong> admin@lernovate.com / admin123
             </p>
           </div>
         </div>

@@ -4,40 +4,40 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Reverted to clean EdTech orange/white color scheme */
+  /* Updated to professional blue/white EdTech color scheme */
   --background: #ffffff;
   --foreground: #1a1a1a;
   --card: #ffffff;
   --card-foreground: #1a1a1a;
   --popover: #ffffff;
   --popover-foreground: #1a1a1a;
-  --primary: #ff6b35; /* EdTech orange */
+  --primary: #2563eb; /* Professional blue */
   --primary-foreground: #ffffff;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #1a1a1a;
-  --muted: #f5f5f5;
-  --muted-foreground: #6b7280;
-  --accent: #f5f5f5;
-  --accent-foreground: #1a1a1a;
+  --secondary: #f8fafc;
+  --secondary-foreground: #1e293b;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #e0f2fe;
+  --accent-foreground: #0c4a6e;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #e5e7eb;
+  --border: #e2e8f0;
   --input: #ffffff;
-  --ring: rgba(255, 107, 53, 0.3);
-  --chart-1: #ff6b35;
-  --chart-2: #1a1a1a;
-  --chart-3: #6b7280;
-  --chart-4: #f5f5f5;
-  --chart-5: #ffffff;
+  --ring: rgba(37, 99, 235, 0.3);
+  --chart-1: #2563eb;
+  --chart-2: #1e40af;
+  --chart-3: #3b82f6;
+  --chart-4: #60a5fa;
+  --chart-5: #93c5fd;
   --radius: 0.5rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #1a1a1a;
-  --sidebar-primary: #ff6b35;
+  --sidebar-primary: #2563eb;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f5f5f5;
-  --sidebar-accent-foreground: #1a1a1a;
-  --sidebar-border: #e5e7eb;
-  --sidebar-ring: rgba(255, 107, 53, 0.3);
+  --sidebar-accent: #f8fafc;
+  --sidebar-accent-foreground: #1e293b;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: rgba(37, 99, 235, 0.3);
 }
 
 .dark {
@@ -47,27 +47,27 @@
   --card-foreground: oklch(0.98 0.005 85);
   --popover: oklch(0.15 0.01 250);
   --popover-foreground: oklch(0.98 0.005 85);
-  --primary: oklch(0.75 0.15 65);
-  --primary-foreground: oklch(0.09 0 0);
+  --primary: oklch(0.6 0.2 240);
+  --primary-foreground: oklch(0.98 0.005 85);
   --secondary: oklch(0.25 0.01 250);
   --secondary-foreground: oklch(0.98 0.005 85);
   --muted: oklch(0.25 0.01 250);
   --muted-foreground: oklch(0.65 0.01 250);
-  --accent: oklch(0.65 0.2 25);
-  --accent-foreground: oklch(1 0 0);
+  --accent: oklch(0.3 0.15 240);
+  --accent-foreground: oklch(0.9 0.1 240);
   --destructive: oklch(0.45 0.2 25);
   --destructive-foreground: oklch(0.65 0.25 25);
   --border: oklch(0.25 0.01 250);
   --input: oklch(0.25 0.01 250);
   --ring: oklch(0.45 0.01 250);
-  --chart-1: oklch(0.55 0.2 280);
-  --chart-2: oklch(0.7 0.15 160);
-  --chart-3: oklch(0.75 0.18 70);
-  --chart-4: oklch(0.6 0.25 300);
-  --chart-5: oklch(0.65 0.24 15);
+  --chart-1: oklch(0.6 0.2 240);
+  --chart-2: oklch(0.55 0.25 240);
+  --chart-3: oklch(0.65 0.15 240);
+  --chart-4: oklch(0.7 0.1 240);
+  --chart-5: oklch(0.75 0.05 240);
   --sidebar: oklch(0.09 0 0);
   --sidebar-foreground: oklch(0.98 0.005 85);
-  --sidebar-primary: oklch(0.55 0.2 280);
+  --sidebar-primary: oklch(0.6 0.2 240);
   --sidebar-primary-foreground: oklch(0.98 0.005 85);
   --sidebar-accent: oklch(0.25 0.01 250);
   --sidebar-accent-foreground: oklch(0.98 0.005 85);
