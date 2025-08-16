@@ -2,23 +2,29 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { JWTAuth } from "./lib/jwt"
-import { ROLE_DASHBOARD_ROUTES, type UserRole } from "./lib/auth-utils"
+import { ROLE_DASHBOARD_ROUTES, type UserRole, ROLES } from "./lib/auth-utils"
 
 // Define protected routes and their required roles
 const protectedRoutes: Record<string, UserRole[]> = {
-  "/dashboard/super-admin": ["super-admin"],
-  "/dashboard/admin": ["super-admin", "admin"],
-  "/dashboard/principal": ["super-admin", "principal"],
-  "/dashboard/vice-principal": ["super-admin", "principal", "vice-principal"],
-  "/dashboard/teacher": ["super-admin", "admin", "principal", "vice-principal", "teacher"],
-  "/dashboard/student": ["student"],
-  "/dashboard/librarian": ["super-admin", "admin", "librarian"],
-  "/dashboard/accountant": ["super-admin", "admin", "accountant"],
-  "/dashboard/parent": ["parent"],
-  "/dashboard/receptionist": ["super-admin", "admin", "receptionist"],
-  "/dashboard/driver": ["super-admin", "admin", "driver"],
-  "/dashboard/guard": ["super-admin", "admin", "guard"],
-  "/dashboard/cleaner": ["super-admin", "admin", "cleaner"],
+  "/dashboard/superadmin": [ROLES.SUPER_ADMIN],
+  "/dashboard/institution": [ROLES.SUPER_ADMIN, ROLES.INSTITUTIONAL_ADMIN],
+  "/dashboard/principal": [ROLES.SUPER_ADMIN, ROLES.INSTITUTIONAL_ADMIN, ROLES.PRINCIPAL],
+  "/dashboard/viceprincipal": [ROLES.SUPER_ADMIN, ROLES.INSTITUTIONAL_ADMIN, ROLES.PRINCIPAL, ROLES.VICE_PRINCIPAL],
+  "/dashboard/hostelwarden": [ROLES.SUPER_ADMIN, ROLES.INSTITUTIONAL_ADMIN, ROLES.HOSTEL_WARDEN],
+  "/dashboard/hostelmatron": [ROLES.SUPER_ADMIN, ROLES.INSTITUTIONAL_ADMIN, ROLES.HOSTEL_MATRON],
+  "/dashboard/librarian": [ROLES.SUPER_ADMIN, ROLES.INSTITUTIONAL_ADMIN, ROLES.LIBRARIAN],
+  "/dashboard/schoolcoordinator": [ROLES.SUPER_ADMIN, ROLES.INSTITUTIONAL_ADMIN, ROLES.SCHOOL_COORDINATOR],
+  "/dashboard/mentor": [ROLES.SUPER_ADMIN, ROLES.INSTITUTIONAL_ADMIN, ROLES.MENTOR],
+  "/dashboard/teachingstaff": [
+    ROLES.SUPER_ADMIN,
+    ROLES.INSTITUTIONAL_ADMIN,
+    ROLES.PRINCIPAL,
+    ROLES.VICE_PRINCIPAL,
+    ROLES.TEACHING_STAFF,
+  ],
+  "/dashboard/nonteachingstaff": [ROLES.SUPER_ADMIN, ROLES.INSTITUTIONAL_ADMIN, ROLES.NON_TEACHING_STAFF],
+  "/dashboard/parents": [ROLES.PARENTS_GUARDIAN],
+  "/dashboard/student": [ROLES.STUDENTS],
 }
 
 // Routes that require authentication but no specific role
